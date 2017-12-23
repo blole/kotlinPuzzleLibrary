@@ -31,22 +31,37 @@ data class Pos(val x: Int, val y: Int) {
 }
 fun Pair<Int,Int>.toPos() = Pos(first, second)
 
+typealias List2d<T> = List<List<T>>
+
 operator fun Array<BooleanArray>.get(pos: Pos): Boolean = this[pos.y][pos.x]
 operator fun Array<BooleanArray>.set(pos: Pos, value: Boolean) { this[pos.y][pos.x] = value}
 operator fun List<String>.get(pos: Pos): Char = this[pos.y][pos.x]
-operator fun <T> List<List<T>>.get(pos: Pos): T = this[pos.y][pos.x]
+operator fun <T> List2d<T>.get(pos: Pos): T = this[pos.y][pos.x]
+
+fun String.toList2d(): List2d<Char> = lines().map { it.toList() }
+fun <T> List2d<T>.transpose(): List2d<T> = this[0].indices.map { col -> indices.map { row -> this[row][col] } }
+fun <T> List2d<T>.flipud(): List2d<T> = asReversed()
+fun <T> List2d<T>.fliplr(): List2d<T> = map { it.asReversed() }
+fun <T> List2d<T>.chunked2d(x: Int, y: Int): List2d<List2d<T>> = chunked(y).map { it.map { it.chunked(x) }.transpose() }
+fun <T> List2d<T>.chunked2d(size: Pos): List2d<List2d<T>> = chunked2d(size.x, size.y)
+/** rotate right times. negative repeats are ok **/
+fun <T> List2d<T>.rot90(repeats: Int = 1): List2d<T> = when {
+    repeats<0      -> rot90(repeats%4+4)
+    repeats%4 == 0 -> this
+    else           -> this[0].indices.map { col -> indices.reversed().map { row -> this[row][col] } }.rot90(repeats-1)
+}
 
 fun <T> List2d(width: Int, height: Int, init: (Pos) -> T): List<List<T>> {
     return (0 until height).map { y -> (0 until width).map { x -> init(Pos(x,y)) } }
 }
 
-fun <T> List<List<T>>.pad(margin: Int, init: (Pos) -> T): List<List<T>> {
+fun <T> List2d<T>.pad(margin: Int, init: (Pos) -> T): List2d<T> {
     val sizex = this.map { it.size }.max() ?: return List2d(margin*2, margin*2, init)
     //var list = List<List<T>>(this.size + margin*2,)
 
-    val top:    List<List<T>> =      (0 until margin)  .map { y -> (0 until sizex+margin*2).map { x -> init(Pos(x,y)) } }
-    val bottom: List<List<T>> = (margin until margin*2).map { y -> (0 until sizex+margin*2).map { x -> init(Pos(x,y)) } }
-    val middle: List<List<T>> = mapIndexed { y, list ->
+    val top:    List2d<T> =      (0 until margin)  .map { y -> (0 until sizex+margin*2).map { x -> init(Pos(x,y)) } }
+    val bottom: List2d<T> = (margin until margin*2).map { y -> (0 until sizex+margin*2).map { x -> init(Pos(x,y)) } }
+    val middle: List2d<T> = mapIndexed { y, list ->
                 (0 until margin).map { x -> init(Pos(x,y+margin)) } +
                 list +
                 (list.size+margin until sizex+margin*2).map { x -> init(Pos(x,y+margin)) } }
