@@ -50,6 +50,14 @@ fun <T> List2d<T>.rot90(repeats: Int = 1): List2d<T> = when {
     repeats%4 == 0 -> this
     else           -> this[0].indices.map { col -> indices.reversed().map { row -> this[row][col] } }.rot90(repeats-1)
 }
+fun <T,R> List2d<T>.mapIndexed2d(transform: (Pos, T) -> R): List2d<R> = mapIndexed { y,row -> row.mapIndexed { x,e -> transform(Pos(x,y),e) } }
+fun <T> List2d<T>.withIndex2d(): List2d<Pair<Pos,T>> = mapIndexed { y,row -> row.mapIndexed { x,e -> Pair(Pos(x,y),e) } }
+fun <T> List2d<T>.forEachIndexed2d(action: (Pos, T) -> Unit): Unit = forEachIndexed { y, row -> row.forEachIndexed { x, e -> action(Pos(x,y),e) } }
+
+fun <A,B,R> Iterable<Pair<A,B>>.mapFirst(transform: (A) -> R): List<Pair<R,B>> = map { Pair(transform(it.first), it.second) }
+fun <A,B,R> Iterable<Pair<A,B>>.mapSecond(transform: (B) -> R): List<Pair<A,R>> = map { Pair(it.first, transform(it.second)) }
+
+fun <K,V> List<Pair<K,V>>.toHashMap(): HashMap<K, V> = hashMapOf(*this.toTypedArray())
 
 fun <T> List2d(width: Int, height: Int, init: (Pos) -> T): List<List<T>> {
     return (0 until height).map { y -> (0 until width).map { x -> init(Pos(x,y)) } }
