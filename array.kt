@@ -58,6 +58,7 @@ fun <A,B,R> Iterable<Pair<A,B>>.mapFirst(transform: (A) -> R): List<Pair<R,B>> =
 fun <A,B,R> Iterable<Pair<A,B>>.mapSecond(transform: (B) -> R): List<Pair<A,R>> = map { Pair(it.first, transform(it.second)) }
 
 fun <K,V> List<Pair<K,V>>.toHashMap(): HashMap<K, V> = hashMapOf(*this.toTypedArray())
+fun <T,R> List<T>.toHashMap(key: (T)->R): HashMap<R,T> = map { Pair(key(it), it) }.toHashMap()
 
 fun <T> List2d(width: Int, height: Int, init: (Pos) -> T): List<List<T>> {
     return (0 until height).map { y -> (0 until width).map { x -> init(Pos(x,y)) } }
