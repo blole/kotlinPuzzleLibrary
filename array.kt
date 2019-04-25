@@ -21,13 +21,20 @@ data class Dir(val x: Int, val y: Int, val index: Int, val name: String) {
     val turnAround: Dir get() = ALL[(index+2)%4]
     override fun toString() = "Dir.$name"
 }
-data class Pos(val x: Int, val y: Int) {
+data class Pos(val x: Int, val y: Int) : Comparable<Pos> {
     val up:    Pos get() = this+Dir.UP
     val right: Pos get() = this+Dir.RIGHT
     val down:  Pos get() = this+Dir.DOWN
     val left:  Pos get() = this+Dir.LEFT
 
     operator fun plus(dir: Dir) = Pos(x+dir.x, y+dir.y)
+
+    override fun compareTo(other: Pos): Int {
+        return if (y.compareTo(other.y) == 0)
+            x.compareTo(other.x)
+        else
+            y.compareTo(other.y)
+    }
 }
 fun Pair<Int,Int>.toPos() = Pos(first, second)
 
@@ -35,7 +42,14 @@ typealias List2d<T> = List<List<T>>
 
 operator fun Array<BooleanArray>.get(pos: Pos): Boolean = this[pos.y][pos.x]
 operator fun Array<BooleanArray>.set(pos: Pos, value: Boolean) { this[pos.y][pos.x] = value}
+operator fun <T> Array<Array<T>>.get(pos: Pos): T = this[pos.y][pos.x]
+operator fun <T> Array<Array<T>>.set(pos: Pos, value: T) { this[pos.y][pos.x] = value}
 operator fun List<String>.get(pos: Pos): Char = this[pos.y][pos.x]
+operator fun MutableList<String>.set(pos: Pos, value: Char) {
+    val line = this[pos.y].toCharArray()
+    line[pos.x] = value
+    this[pos.y] = String(line)
+}
 operator fun <T> List2d<T>.get(pos: Pos): T = this[pos.y][pos.x]
 
 fun String.toList2d(): List2d<Char> = lines().map { it.toList() }
